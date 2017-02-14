@@ -1,0 +1,35 @@
+{
+  "name": "corpjs-endpoints",
+  "version": "0.0.1",
+  "description": "Endpoint manager for microservices",
+  "main": "lib/index.js",
+  "typings": "lib/index",
+  "scripts": {
+    "build": "node_modules/.bin/tsc",
+    "build:w": "node_modules/.bin/tsc -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jaystack/corpjs-endpoints.git"
+  },
+  "keywords": [
+    "microservice",
+    "endpoints",
+    "corpjs"
+  ],
+  "author": "JayStack",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jaystack/corpjs-endpoints/issues"
+  },
+  "homepage": "https://github.com/jaystack/corpjs-endpoints#readme",
+  "dependencies": {
+    "corpjs-config": "~0.0.4",
+    "corpjs-system": "0.0.5",
+    "fs-promise": "^2.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^2.2.0"
+  }
+}
