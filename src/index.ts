@@ -10,8 +10,8 @@ export default function (): Component<CorpjsEndpoints> {
 
   return {
 
-    start({ conf }, cb: ComponentCallback<CorpjsEndpoints>) {
-      config = conf
+    start(deps, cb: ComponentCallback<CorpjsEndpoints>) {
+      config = deps.config
       start(config)
         .then(corpjsEndpoints => cb(null, corpjsEndpoints))
         .catch(err => cb(err, null))
@@ -26,32 +26,40 @@ export default function (): Component<CorpjsEndpoints> {
   } as Component<CorpjsEndpoints>
 }
 
-async function start(config): Promise<CorpjsEndpoints> {
+async function start(config: any = {}): Promise<CorpjsEndpoints> {
   const endpointsFilePath = getEndpointsFilePath(config)
-  let endpoints: Endpoints = await readJson(endpointsFilePath) || {}
-  watchFile(endpointsFilePath, async () => endpoints = await readJson(endpointsFilePath) || {})
+  let endpoints: Endpoints = await read(endpointsFilePath)
+  watchFile(endpointsFilePath, async () => endpoints = await read(endpointsFilePath) || {})
   return {
-    getServiceEndpoint: alias => getServiceEndpoint(endpoints, alias, config),
-    getServiceAddress: alias => getServiceAddress(endpoints, alias, config)
+    getServiceEndpoint: alias => getServiceEndpoint(endpoints, alias, config.normalize),
+    getServiceAddress: alias => getServiceAddress(endpoints, alias, config.normalize)
+  }
+}
+
+async function read(path) {
+  try {
+    return await readJson(path)
+  } catch (err) {
+    return {}
   }
 }
 
 function getEndpointsFilePath(config): string {
-  const { endpointsConfig } = config
-  if (!endpointsConfig) return './system-endpoints.json'
-  return typeof endpointsConfig === 'string' ? endpointsConfig : endpointsConfig.endpointsFilePath
+  const { systemEndpoints } = config
+  if (!systemEndpoints) return './endpoints.json'
+  return typeof systemEndpoints === 'string' ? systemEndpoints : systemEndpoints.endpointsFilePath
 }
 
 function getServiceEndpoint(endpoints: Endpoints, alias: string, normalize = true): Endpoint {
   return normalize ? normalizeEndpoint(endpoints.currentHost, get(endpoints, alias)) : get(endpoints, alias)
 }
 
-function getServiceAddress(endpoints, alias: string, {normalize = true}): string {
+function getServiceAddress(endpoints, alias: string, normalize = true): string {
   return join(getServiceEndpoint(endpoints, alias, normalize))
 }
 
 function get(endpoints, alias): Endpoint {
-  return endpoints.hosts[alias] || resolveAddress(alias)
+  return ((endpoints || {}).hosts || {})[alias] || resolveAddress(alias)
 }
 
 function resolveAddress(address: string): Endpoint {
@@ -60,7 +68,7 @@ function resolveAddress(address: string): Endpoint {
 }
 
 function join({host, port}: Endpoint): string {
-  return `${host}:${port}`
+  return [host, port].filter(_ => _).join(':')
 }
 
 function normalizeEndpoint(currentHost: string, endpoint: Endpoint): Endpoint {

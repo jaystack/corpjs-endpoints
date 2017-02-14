@@ -7,7 +7,10 @@
   "scripts": {
     "build": "node_modules/.bin/tsc",
     "build:w": "node_modules/.bin/tsc -w",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build-tests": "node_modules/.bin/tsc -p test_src --outDir test",
+    "build-tests:w": "node_modules/.bin/tsc -p test_src --outDir test",
+    "pretest": "npm run build-tests",
+    "test": "node_modules/.bin/mocha test/**/*.spec.js"
   },
   "repository": {
     "type": "git",
