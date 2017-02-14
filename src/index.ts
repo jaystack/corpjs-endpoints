@@ -1,24 +1,26 @@
 import { readJson, watchFile, unwatchFile } from 'fs-promise'
-import System from 'corpjs-system'
-import { Component, Callback } from 'corpjs-system'
+import System, { Component, ComponentCallback } from 'corpjs-system'
 import { CorpjsEndpoints, EndpointsConfig, Endpoint, Endpoints } from './types'
 
-export default function () {
+export * from './types'
+
+export default function (): Component<CorpjsEndpoints> {
 
   let config: EndpointsConfig
 
   return {
 
-    start({ conf }, cb: Callback<CorpjsEndpoints>) {
+    start({ conf }, cb: ComponentCallback<CorpjsEndpoints>) {
       config = conf
       start(config)
         .then(corpjsEndpoints => cb(null, corpjsEndpoints))
         .catch(err => cb(err, null))
     },
 
-    stop(cb: Callback<void>) {
+    stop(cb: ComponentCallback<void>) {
       const endpointsFilePath = getEndpointsFilePath(config)
       unwatchFile(endpointsFilePath)
+      cb()
     }
 
   } as Component<CorpjsEndpoints>
