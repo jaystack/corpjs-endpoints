@@ -58,10 +58,6 @@ function getServiceAddress(endpoints, alias: string, normalize = true): string {
   return join(getServiceEndpoint(endpoints, alias, normalize))
 }
 
-// function get(endpoints, alias): Endpoint {
-//   return ((endpoints || {}).hosts || {})[alias] || resolveAddress(alias)
-// }
-
 export function getAlias(endpoints, alias): Endpoint {
   const hosts = ((endpoints || {}).hosts || undefined)
   const aliasHosts = hosts ? (hosts.filter(host => host.alias === alias)) : undefined
