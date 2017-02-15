@@ -1,6 +1,6 @@
 import 'mocha'
 import * as assert from 'assert'
-import { readFile } from 'fs'
+import { readJson } from 'fs-promise'
 import System, { Component } from 'corpjs-system'
 import EndpointComponent, { EndpointsConfig, CorpjsEndpoints, Endpoints } from '../src'
 
@@ -83,21 +83,4 @@ function createSystem(conf): Promise<Components> {
 
 function config(conf): Component<Config> {
   return { start(done) { done(null, conf) } }
-}
-
-
-async function readJson(jsonFileName: string) {
-  return new Promise((resolve: Function, reject: Function) => {
-    readFile(jsonFileName, "utf-8", (err, data) => {
-      if (err) return reject(err)
-      let jsonData
-      try {
-        jsonData = JSON.parse(data)
-      }
-      catch(error) {
-        return reject(error)
-      }
-      return resolve(jsonData);
-    })
-  })
 }
