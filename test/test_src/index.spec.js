@@ -32,11 +32,11 @@ describe('corpjs-endpoints', () => {
             assert.throws(() => { throw err; }, /ENOENT/);
         }
     }));
-    it('it should return the alias', () => __awaiter(this, void 0, void 0, function* () {
+    it('for an empty json it should return the value of alias as host addres', () => __awaiter(this, void 0, void 0, function* () {
         const { endpoints } = yield createSystem({ systemEndpoints: emptyTestEndpointsJsonFile });
         assert.equal(endpoints.getServiceAddress('yee'), 'yee');
     }));
-    it('it should return the alias endpoint', () => __awaiter(this, void 0, void 0, function* () {
+    it('for an empty json it should return an endpoint with .host = the value of alias and .port = undefined', () => __awaiter(this, void 0, void 0, function* () {
         const { endpoints } = yield createSystem({ systemEndpoints: emptyTestEndpointsJsonFile });
         assert.deepStrictEqual(endpoints.getServiceEndpoint('yee'), { host: 'yee', port: undefined });
     }));

@@ -33,12 +33,12 @@ describe('corpjs-endpoints', () => {
     }
   })
 
-  it('it should return the alias', async () => {
+  it('for an empty json it should return the value of alias as host addres', async () => {
     const {endpoints} = await createSystem({ systemEndpoints: emptyTestEndpointsJsonFile })
     assert.equal(endpoints.getServiceAddress('yee'), 'yee')
   })
 
-  it('it should return the alias endpoint', async () => {
+  it('for an empty json it should return an endpoint with .host = the value of alias and .port = undefined', async () => {
     const {endpoints} = await createSystem({ systemEndpoints: emptyTestEndpointsJsonFile })
     assert.deepStrictEqual(endpoints.getServiceEndpoint('yee'), { host: 'yee', port: undefined })
   })
