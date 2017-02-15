@@ -10,6 +10,7 @@ interface Components {
   endpoints: CorpjsEndpoints
 }
 
+const emptyTestEndpointsJsonFile = "test_src/empty-endpoints.json"
 const testEndpointsJsonFile = "test_src/endpoints.json"
 
 describe('corpjs-endpoints', () => {
@@ -33,12 +34,12 @@ describe('corpjs-endpoints', () => {
   })
 
   it('it should return the alias', async () => {
-    const {endpoints} = await createSystem({ systemEndpoints: "test_src/empty-endpoints.json" })
+    const {endpoints} = await createSystem({ systemEndpoints: emptyTestEndpointsJsonFile })
     assert.equal(endpoints.getServiceAddress('yee'), 'yee')
   })
 
   it('it should return the alias endpoint', async () => {
-    const {endpoints} = await createSystem({ systemEndpoints: "test_src/empty-endpoints.json" })
+    const {endpoints} = await createSystem({ systemEndpoints: emptyTestEndpointsJsonFile })
     assert.deepStrictEqual(endpoints.getServiceEndpoint('yee'), { host: 'yee', port: undefined })
   })
 

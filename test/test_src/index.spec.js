@@ -12,6 +12,7 @@ const assert = require("assert");
 const fs_1 = require("fs");
 const corpjs_system_1 = require("corpjs-system");
 const src_1 = require("../src");
+const emptyTestEndpointsJsonFile = "test_src/empty-endpoints.json";
 const testEndpointsJsonFile = "test_src/endpoints.json";
 describe('corpjs-endpoints', () => {
     let endpointsJson;
@@ -32,11 +33,11 @@ describe('corpjs-endpoints', () => {
         }
     }));
     it('it should return the alias', () => __awaiter(this, void 0, void 0, function* () {
-        const { endpoints } = yield createSystem({ systemEndpoints: "test_src/empty-endpoints.json" });
+        const { endpoints } = yield createSystem({ systemEndpoints: emptyTestEndpointsJsonFile });
         assert.equal(endpoints.getServiceAddress('yee'), 'yee');
     }));
     it('it should return the alias endpoint', () => __awaiter(this, void 0, void 0, function* () {
-        const { endpoints } = yield createSystem({ systemEndpoints: "test_src/empty-endpoints.json" });
+        const { endpoints } = yield createSystem({ systemEndpoints: emptyTestEndpointsJsonFile });
         assert.deepStrictEqual(endpoints.getServiceEndpoint('yee'), { host: 'yee', port: undefined });
     }));
     it('it should resolve endpoint address', () => __awaiter(this, void 0, void 0, function* () {
