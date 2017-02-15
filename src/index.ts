@@ -1,6 +1,6 @@
 import { readJson, watchFile, unwatchFile } from 'fs-promise'
 import System, { Component, ComponentCallback } from 'corpjs-system'
-import { CorpjsEndpoints, EndpointsConfig, Endpoint, Endpoints } from './types'
+import { CorpjsEndpoints, EndpointsConfig, Endpoint, Endpoints, Host } from './types'
 
 export * from './types'
 
@@ -51,15 +51,21 @@ function getEndpointsFilePath(config): string {
 }
 
 function getServiceEndpoint(endpoints: Endpoints, alias: string, normalize = true): Endpoint {
-  return normalize ? normalizeEndpoint(endpoints.currentHost, get(endpoints, alias)) : get(endpoints, alias)
+  return normalize ? normalizeEndpoint(endpoints.currentHost, getAlias(endpoints, alias)) : getAlias(endpoints, alias)
 }
 
 function getServiceAddress(endpoints, alias: string, normalize = true): string {
   return join(getServiceEndpoint(endpoints, alias, normalize))
 }
 
-function get(endpoints, alias): Endpoint {
-  return ((endpoints || {}).hosts || {})[alias] || resolveAddress(alias)
+// function get(endpoints, alias): Endpoint {
+//   return ((endpoints || {}).hosts || {})[alias] || resolveAddress(alias)
+// }
+
+export function getAlias(endpoints, alias): Endpoint {
+  const hosts = ((endpoints || {}).hosts || undefined)
+  const aliasHosts = hosts ? (hosts.filter(host => host.alias === alias)) : undefined
+  return aliasHosts && aliasHosts[0] && aliasHosts[0].endpoint || resolveAddress(alias)
 }
 
 function resolveAddress(address: string): Endpoint {
@@ -67,7 +73,8 @@ function resolveAddress(address: string): Endpoint {
   return { host, port }
 }
 
-function join({host, port}: Endpoint): string {
+function join(endpoint: Endpoint): string {
+  const {host, port} = endpoint
   return [host, port].filter(_ => _).join(':')
 }
 

@@ -8,11 +8,14 @@ export interface Endpoint {
   port: string | number
 }
 
+export interface Host {
+  alias: string
+  endpoint: Endpoint
+}
+
 export interface Endpoints {
   currentHost: string
-  hosts: {
-    [alias: string]: Endpoint
-  }
+  hosts: Host[]
 }
 
 export interface CorpjsEndpoints {
