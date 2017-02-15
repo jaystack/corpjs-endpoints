@@ -24,7 +24,7 @@ describe('getAlias', () => {
     assert.deepStrictEqual(getAlias(endpoints, endpoints.hosts[0].alias), expectedEndpoint)
   })
 
-  it('it should return ??? if alias is not matched', () => {
+  it('it should return alias value as host and porst as undefined if alias is not matched', () => {
     const endpoints = {
       currentHost: "localhost",
       hosts: [
