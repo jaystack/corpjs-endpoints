@@ -89,7 +89,14 @@ async function readJson(jsonFileName: string) {
   return new Promise((resolve: Function, reject: Function) => {
     readFile(jsonFileName, "utf-8", (err, data) => {
       if (err) return reject(err)
-      return resolve(JSON.parse(data));
+      let jsonData
+      try {
+        jsonData = JSON.parse(data)
+      }
+      catch(error) {
+        return reject(error)
+      }
+      return resolve(jsonData);
     })
   })
 }

@@ -59,9 +59,6 @@ function getServiceEndpoint(endpoints, alias, normalize = true) {
 function getServiceAddress(endpoints, alias, normalize = true) {
     return join(getServiceEndpoint(endpoints, alias, normalize));
 }
-// function get(endpoints, alias): Endpoint {
-//   return ((endpoints || {}).hosts || {})[alias] || resolveAddress(alias)
-// }
 function getAlias(endpoints, alias) {
     const hosts = ((endpoints || {}).hosts || undefined);
     const aliasHosts = hosts ? (hosts.filter(host => host.alias === alias)) : undefined;
