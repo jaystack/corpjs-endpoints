@@ -9,9 +9,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 require("mocha");
 const assert = require("assert");
+const fs_1 = require("fs");
 const corpjs_system_1 = require("corpjs-system");
 const src_1 = require("../src");
+const testEndpointsJsonFile = "test_src/endpoints.json";
 describe('corpjs-endpoints', () => {
+    let endpointsJson;
+    before((done) => {
+        readJson(testEndpointsJsonFile)
+            .then(jsonData => {
+            endpointsJson = jsonData;
+            return done();
+        })
+            .catch(err => done(err));
+    });
     it('it misses system-endpoints.json on default path', () => __awaiter(this, void 0, void 0, function* () {
         try {
             yield createSystem({});
@@ -29,12 +40,18 @@ describe('corpjs-endpoints', () => {
         assert.deepStrictEqual(endpoints.getServiceEndpoint('yee'), { host: 'yee', port: undefined });
     }));
     it('it should resolve endpoint address', () => __awaiter(this, void 0, void 0, function* () {
-        const { endpoints } = yield createSystem({ systemEndpoints: "test_src/endpoints.json" });
+        const { endpoints } = yield createSystem({ systemEndpoints: testEndpointsJsonFile });
         assert.equal(endpoints.getServiceAddress('yee'), 'localhost:3000');
     }));
     it('it should resolve endpoint', () => __awaiter(this, void 0, void 0, function* () {
-        const { endpoints } = yield createSystem({ systemEndpoints: "test_src/endpoints.json" });
+        const { endpoints } = yield createSystem({ systemEndpoints: testEndpointsJsonFile });
         assert.deepStrictEqual(endpoints.getServiceEndpoint('yee'), { host: 'localhost', port: 3000 });
+    }));
+    it('it should resolve endpoint of the same host as localhost', () => __awaiter(this, void 0, void 0, function* () {
+        const { endpoints } = yield createSystem({ systemEndpoints: testEndpointsJsonFile });
+        assert.equal(endpointsJson.currentHost, "1.2.3.4");
+        assert.equal(endpointsJson.hosts[1].endpoint.host, "1.2.3.4");
+        assert.deepStrictEqual(endpoints.getServiceEndpoint('sameHost'), { host: 'localhost', port: 3001 });
     }));
 });
 function createSystem(conf) {
@@ -51,4 +68,15 @@ function createSystem(conf) {
 }
 function config(conf) {
     return { start(done) { done(null, conf); } };
+}
+function readJson(jsonFileName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => {
+            fs_1.readFile(jsonFileName, "utf-8", (err, data) => {
+                if (err)
+                    return reject(err);
+                return resolve(JSON.parse(data));
+            });
+        });
+    });
 }

@@ -54,23 +54,33 @@ function getEndpointsFilePath(config) {
     return typeof systemEndpoints === 'string' ? systemEndpoints : systemEndpoints.endpointsFilePath;
 }
 function getServiceEndpoint(endpoints, alias, normalize = true) {
-    return normalize ? normalizeEndpoint(endpoints.currentHost, get(endpoints, alias)) : get(endpoints, alias);
+    return normalize ? normalizeEndpoint(endpoints.currentHost, getAlias(endpoints, alias)) : getAlias(endpoints, alias);
 }
 function getServiceAddress(endpoints, alias, normalize = true) {
     return join(getServiceEndpoint(endpoints, alias, normalize));
 }
-function get(endpoints, alias) {
-    return ((endpoints || {}).hosts || {})[alias] || resolveAddress(alias);
+// function get(endpoints, alias): Endpoint {
+//   return ((endpoints || {}).hosts || {})[alias] || resolveAddress(alias)
+// }
+function getAlias(endpoints, alias) {
+    const hosts = ((endpoints || {}).hosts || undefined);
+    const aliasHosts = hosts ? (hosts.filter(host => host.alias === alias)) : undefined;
+    return aliasHosts && aliasHosts[0] && aliasHosts[0].endpoint || resolveAddress(alias);
 }
+exports.getAlias = getAlias;
 function resolveAddress(address) {
     const [host, port] = address.split(':').filter(_ => _);
     return { host, port };
 }
-function join({ host, port }) {
+function join(endpoint) {
+    const { host, port } = endpoint;
     return [host, port].filter(_ => _).join(':');
 }
 function normalizeEndpoint(currentHost, endpoint) {
-    if (!currentHost)
+    if (currentHost === endpoint.host) {
+        return { host: 'localhost', port: endpoint.port };
+    }
+    else {
         return endpoint;
-    return { host: currentHost, port: endpoint.port };
+    }
 }
