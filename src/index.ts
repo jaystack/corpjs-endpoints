@@ -73,5 +73,5 @@ function join({host, port}: Endpoint): string {
 
 function normalizeEndpoint(currentHost: string, endpoint: Endpoint): Endpoint {
   if (!currentHost) return endpoint
-  return { host: currentHost, port: endpoint.port }
+  return { host: 'localhost', port: endpoint.port }
 }
