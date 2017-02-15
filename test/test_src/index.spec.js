@@ -49,9 +49,15 @@ describe('corpjs-endpoints', () => {
     }));
     it('it should resolve endpoint of the same host as localhost', () => __awaiter(this, void 0, void 0, function* () {
         const { endpoints } = yield createSystem({ systemEndpoints: testEndpointsJsonFile });
-        assert.equal(endpointsJson.currentHost, "1.2.3.4");
-        assert.equal(endpointsJson.hosts[1].endpoint.host, "1.2.3.4");
+        assert.equal(endpointsJson.currentHost, '1.2.3.4');
+        assert.equal(endpointsJson.hosts[1].endpoint.host, '1.2.3.4');
         assert.deepStrictEqual(endpoints.getServiceEndpoint('sameHost'), { host: 'localhost', port: 3001 });
+    }));
+    it('it should not resolve endpoint of a different host as localhost', () => __awaiter(this, void 0, void 0, function* () {
+        const { endpoints } = yield createSystem({ systemEndpoints: testEndpointsJsonFile });
+        assert.equal(endpointsJson.currentHost, '1.2.3.4');
+        assert.equal(endpointsJson.hosts[2].endpoint.host, '10.20.30.40');
+        assert.deepStrictEqual(endpoints.getServiceEndpoint('differentHost'), { host: '10.20.30.40', port: 3002 });
     }));
 });
 function createSystem(conf) {

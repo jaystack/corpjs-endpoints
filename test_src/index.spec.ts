@@ -2,7 +2,7 @@ import 'mocha'
 import * as assert from 'assert'
 import { readFile } from 'fs'
 import System, { Component } from 'corpjs-system'
-import EndpointComponent, { EndpointsConfig, CorpjsEndpoints, getAlias, Endpoints } from '../src'
+import EndpointComponent, { EndpointsConfig, CorpjsEndpoints, Endpoints } from '../src'
 
 interface Config { systemEndpoints?: string | EndpointsConfig }
 interface Components {
@@ -54,9 +54,16 @@ describe('corpjs-endpoints', () => {
 
   it('it should resolve endpoint of the same host as localhost', async () => {
     const {endpoints} = await createSystem({ systemEndpoints: testEndpointsJsonFile })
-    assert.equal(endpointsJson.currentHost, "1.2.3.4")
-    assert.equal(endpointsJson.hosts[1].endpoint.host, "1.2.3.4")
+    assert.equal(endpointsJson.currentHost, '1.2.3.4')
+    assert.equal(endpointsJson.hosts[1].endpoint.host, '1.2.3.4')
     assert.deepStrictEqual(endpoints.getServiceEndpoint('sameHost'), { host: 'localhost', port: 3001 })
+  })
+
+  it('it should not resolve endpoint of a different host as localhost', async () => {
+    const {endpoints} = await createSystem({ systemEndpoints: testEndpointsJsonFile })
+    assert.equal(endpointsJson.currentHost, '1.2.3.4')
+    assert.equal(endpointsJson.hosts[2].endpoint.host, '10.20.30.40')
+    assert.deepStrictEqual(endpoints.getServiceEndpoint('differentHost'), { host: '10.20.30.40', port: 3002 })
   })
 
 })
