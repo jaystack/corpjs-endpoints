@@ -28,7 +28,6 @@
   },
   "homepage": "https://github.com/jaystack/corpjs-endpoints#readme",
   "dependencies": {
-    "corpjs-config": "~0.0.4",
     "corpjs-system": "~0.0.6",
     "fs-promise": "^2.0.0"
   },

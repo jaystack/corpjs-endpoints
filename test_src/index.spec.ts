@@ -1,31 +1,52 @@
 import 'mocha'
 import * as assert from 'assert'
-import { readJson } from 'fs-promise'
+import { writeJson, writeFile, truncate } from 'fs-promise'
 import System from 'corpjs-system'
 import EndpointComponent, { EndpointsConfig, CorpjsEndpoints, Endpoints } from '../src'
 
-interface Config { systemEndpoints?: string | EndpointsConfig }
-interface Components {
-  config: Config
-  endpoints: CorpjsEndpoints
+const testEndpoints = {
+  "currentHost": "1.2.3.4",
+  "hosts": [
+    {
+      "alias": "yee",
+      "endpoint": {
+        "host": "localhost",
+        "port": 3000
+      }
+    },
+    {
+      "alias": "sameHost",
+      "endpoint": {
+        "host": "1.2.3.4",
+        "port": 3001
+      }
+    },
+    {
+      "alias": "differentHost",
+      "endpoint": {
+        "host": "10.20.30.40",
+        "port": 3002
+      }
+    }
+  ]
 }
 
-const emptyTestEndpointsJsonFile = "test_src/empty-endpoints.json"
-const testEndpointsJsonFile = "test_src/endpoints.json"
+const changedEndpoints = {
+  ...testEndpoints,
+  hosts: testEndpoints.hosts.map(
+    host => host.alias === 'yee' ?
+      ({ ...host, endpoint: { port: host.endpoint.port, host: '1.1.1.1' } }) :
+      host
+  )
+}
+
+const ENDPOINTS_FILE_PATH = './test/temp-endpoints.json'
 
 describe('corpjs-endpoints', () => {
 
-  let endpointsJson: Endpoints
-  before((done) => {
-    readJson(testEndpointsJsonFile)
-      .then(jsonData => {
-        endpointsJson = <Endpoints>jsonData
-        return done()
-      })
-      .catch(err => done(err))
-  })
+  let system
 
-  it('it misses system-endpoints.json on default path', async () => {
+  it('it misses endpoints file on default path', async () => {
     try {
       await createSystem({})
     } catch (err) {
@@ -33,47 +54,90 @@ describe('corpjs-endpoints', () => {
     }
   })
 
+  beforeEach(async () => {
+    if (system) await system.stop()
+  })
+
   it('for an empty json it should return the value of alias as host addres', async () => {
-    const {endpoints} = await createSystem({ systemEndpoints: emptyTestEndpointsJsonFile })
+    await createEndpointsFile()
+    system = createSystem({ systemEndpoints: ENDPOINTS_FILE_PATH })
+    const {endpoints} = await system.start()
     assert.equal(endpoints.getServiceAddress('yee'), 'yee')
   })
 
   it('for an empty json it should return an endpoint with .host = the value of alias and .port = undefined', async () => {
-    const {endpoints} = await createSystem({ systemEndpoints: emptyTestEndpointsJsonFile })
+    await createEndpointsFile()
+    system = createSystem({ systemEndpoints: ENDPOINTS_FILE_PATH })
+    const {endpoints} = await system.start()
     assert.deepStrictEqual(endpoints.getServiceEndpoint('yee'), { host: 'yee', port: undefined })
   })
 
   it('it should resolve endpoint address', async () => {
-    const {endpoints} = await createSystem({ systemEndpoints: testEndpointsJsonFile })
+    await createEndpointsFile(testEndpoints)
+    system = createSystem({ systemEndpoints: ENDPOINTS_FILE_PATH })
+    const {endpoints} = await system.start()
     assert.equal(endpoints.getServiceAddress('yee'), 'localhost:3000')
   })
 
   it('it should resolve endpoint', async () => {
-    const {endpoints} = await createSystem({ systemEndpoints: testEndpointsJsonFile })
+    await createEndpointsFile(testEndpoints)
+    system = createSystem({ systemEndpoints: ENDPOINTS_FILE_PATH })
+    const {endpoints} = await system.start()
     assert.deepStrictEqual(endpoints.getServiceEndpoint('yee'), { host: 'localhost', port: 3000 })
   })
 
   it('it should resolve endpoint of the same host as localhost', async () => {
-    const {endpoints} = await createSystem({ systemEndpoints: testEndpointsJsonFile })
-    assert.equal(endpointsJson.currentHost, '1.2.3.4')
-    assert.equal(endpointsJson.hosts[1].endpoint.host, '1.2.3.4')
+    await createEndpointsFile(testEndpoints)
+    system = createSystem({ systemEndpoints: ENDPOINTS_FILE_PATH })
+    const {endpoints} = await system.start()
+    assert.equal(testEndpoints.currentHost, '1.2.3.4')
+    assert.equal(testEndpoints.hosts[1].endpoint.host, '1.2.3.4')
     assert.deepStrictEqual(endpoints.getServiceEndpoint('sameHost'), { host: 'localhost', port: 3001 })
   })
 
   it('it should not resolve endpoint of a different host as localhost', async () => {
-    const {endpoints} = await createSystem({ systemEndpoints: testEndpointsJsonFile })
-    assert.equal(endpointsJson.currentHost, '1.2.3.4')
-    assert.equal(endpointsJson.hosts[2].endpoint.host, '10.20.30.40')
+    await createEndpointsFile(testEndpoints)
+    system = createSystem({ systemEndpoints: ENDPOINTS_FILE_PATH })
+    const {endpoints} = await system.start()
+    assert.equal(testEndpoints.currentHost, '1.2.3.4')
+    assert.equal(testEndpoints.hosts[2].endpoint.host, '10.20.30.40')
     assert.deepStrictEqual(endpoints.getServiceEndpoint('differentHost'), { host: '10.20.30.40', port: 3002 })
+  })
+
+  it('it should watch file', done => {
+    (async () => {
+      await createEndpointsFile(testEndpoints)
+      system = createSystem({ systemEndpoints: ENDPOINTS_FILE_PATH })
+        .on('restart', ({endpoints}) => {
+          try {
+            assert.deepStrictEqual(endpoints.getServiceEndpoint('yee'), { host: '1.1.1.1', port: 3000 })
+            done()
+          } catch (err) {
+            done(err)
+          }
+        })
+      
+      await system.start()
+      await createEndpointsFile(changedEndpoints)
+    })()
+  })
+
+  after(async () => {
+    await system.stop()
   })
 
 })
 
-async function createSystem(conf): Promise<any> {
-  return await new System()
+function createSystem(conf): System {
+  return new System()
     .add('config', config(conf))
     .add('endpoints', EndpointComponent()).dependsOn('config')
-    .start()
+}
+
+async function createEndpointsFile(content?) {
+  if (content) await writeJson(ENDPOINTS_FILE_PATH, content)
+  else await writeFile(ENDPOINTS_FILE_PATH, '')
+  return content
 }
 
 function config(conf): System.Component {

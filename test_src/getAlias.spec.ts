@@ -2,7 +2,7 @@ import 'mocha'
 import * as assert from 'assert'
 import { getByAlias } from '../src'
 
-describe('getAlias', () => {
+describe('getByAlias', () => {
 
   it('it should return host.endpoint if alias matches host.alias', () => {
     const endpoints = {

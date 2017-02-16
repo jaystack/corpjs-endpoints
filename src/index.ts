@@ -1,4 +1,4 @@
-import { readJson, watchFile, unwatchFile } from 'fs-promise'
+import { readJson, watch, FSWatcher } from 'fs-promise'
 import System from 'corpjs-system'
 import { CorpjsEndpoints, EndpointsConfig, Endpoint, Endpoints, Host } from './types'
 
@@ -6,15 +6,14 @@ export * from './types'
 
 export default function (): System.Component {
 
-  let config: EndpointsConfig
+  let watcher: FSWatcher
 
   return {
 
-    async start(deps: { config: any }, restart) {
-      config = deps.config
+    async start({config}: { config: any }, restart) {
       const endpointsFilePath = getEndpointsFilePath(config)
       const endpoints = await read(endpointsFilePath)
-      await watchFile(endpointsFilePath, restart)
+      watcher = watch(endpointsFilePath, restart)
       return {
         getServiceEndpoint: alias => getServiceEndpoint(endpoints, alias, config.normalize),
         getServiceAddress: alias => getServiceAddress(endpoints, alias, config.normalize)
@@ -22,8 +21,7 @@ export default function (): System.Component {
     },
 
     async stop() {
-      const endpointsFilePath = getEndpointsFilePath(config)
-      await unwatchFile(endpointsFilePath)
+      watcher.close()
     }
 
   } as System.Component
