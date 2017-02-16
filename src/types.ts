@@ -14,8 +14,8 @@ export interface Host {
 }
 
 export interface Endpoints {
-  currentHost: string
-  hosts: Host[]
+  currentHost?: string
+  hosts?: Host[]
 }
 
 export interface CorpjsEndpoints {

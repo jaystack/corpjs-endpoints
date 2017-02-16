@@ -1,42 +1,35 @@
 import { readJson, watchFile, unwatchFile } from 'fs-promise'
-import System, { Component, ComponentCallback } from 'corpjs-system'
+import System from 'corpjs-system'
 import { CorpjsEndpoints, EndpointsConfig, Endpoint, Endpoints, Host } from './types'
 
 export * from './types'
 
-export default function (): Component<CorpjsEndpoints> {
+export default function (): System.Component {
 
   let config: EndpointsConfig
 
   return {
 
-    start(deps, cb: ComponentCallback<CorpjsEndpoints>) {
+    async start(deps: { config: any }, restart) {
       config = deps.config
-      start(config)
-        .then(corpjsEndpoints => cb(null, corpjsEndpoints))
-        .catch(err => cb(err, null))
+      const endpointsFilePath = getEndpointsFilePath(config)
+      const endpoints = await read(endpointsFilePath)
+      await watchFile(endpointsFilePath, restart)
+      return {
+        getServiceEndpoint: alias => getServiceEndpoint(endpoints, alias, config.normalize),
+        getServiceAddress: alias => getServiceAddress(endpoints, alias, config.normalize)
+      }
     },
 
-    stop(cb: ComponentCallback<void>) {
+    async stop() {
       const endpointsFilePath = getEndpointsFilePath(config)
-      unwatchFile(endpointsFilePath)
-      cb()
+      await unwatchFile(endpointsFilePath)
     }
 
-  } as Component<CorpjsEndpoints>
+  } as System.Component
 }
 
-async function start(config: any = {}): Promise<CorpjsEndpoints> {
-  const endpointsFilePath = getEndpointsFilePath(config)
-  let endpoints: Endpoints = await read(endpointsFilePath)
-  watchFile(endpointsFilePath, async () => endpoints = await read(endpointsFilePath) || {})
-  return {
-    getServiceEndpoint: alias => getServiceEndpoint(endpoints, alias, config.normalize),
-    getServiceAddress: alias => getServiceAddress(endpoints, alias, config.normalize)
-  }
-}
-
-async function read(path) {
+async function read(path): Promise<Endpoints> {
   try {
     return await readJson(path)
   } catch (err) {
@@ -51,17 +44,17 @@ function getEndpointsFilePath(config): string {
 }
 
 function getServiceEndpoint(endpoints: Endpoints, alias: string, normalize = true): Endpoint {
-  return normalize ? normalizeEndpoint(endpoints.currentHost, getAlias(endpoints, alias)) : getAlias(endpoints, alias)
+  return normalize ? normalizeEndpoint(endpoints.currentHost, getByAlias(endpoints, alias)) : getByAlias(endpoints, alias)
 }
 
 function getServiceAddress(endpoints, alias: string, normalize = true): string {
   return join(getServiceEndpoint(endpoints, alias, normalize))
 }
 
-export function getAlias(endpoints, alias): Endpoint {
-  const hosts = ((endpoints || {}).hosts || undefined)
-  const aliasHosts = hosts ? (hosts.filter(host => host.alias === alias)) : undefined
-  return aliasHosts && aliasHosts[0] && aliasHosts[0].endpoint || resolveAddress(alias)
+export function getByAlias(endpoints: Endpoints = {}, alias): Endpoint {
+  const hosts = endpoints.hosts || []
+  const host = hosts.find(host => host.alias === alias)
+  return host && host.endpoint ? host.endpoint : resolveAddress(alias)
 }
 
 function resolveAddress(address: string): Endpoint {
@@ -75,9 +68,6 @@ function join(endpoint: Endpoint): string {
 }
 
 function normalizeEndpoint(currentHost: string, endpoint: Endpoint): Endpoint {
-  if (currentHost === endpoint.host) {
-    return { host: 'localhost', port: endpoint.port }
-  } else {
-    return endpoint
-  }
+  return currentHost === endpoint.host ?
+    { host: 'localhost', port: endpoint.port } : endpoint
 }

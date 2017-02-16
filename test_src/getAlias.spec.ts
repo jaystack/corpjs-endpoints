@@ -1,6 +1,6 @@
 import 'mocha'
 import * as assert from 'assert'
-import { getAlias } from '../src'
+import { getByAlias } from '../src'
 
 describe('getAlias', () => {
 
@@ -21,7 +21,7 @@ describe('getAlias', () => {
       host: "localhost",
       port: "3000"
     }
-    assert.deepStrictEqual(getAlias(endpoints, endpoints.hosts[0].alias), expectedEndpoint)
+    assert.deepStrictEqual(getByAlias(endpoints, endpoints.hosts[0].alias), expectedEndpoint)
   })
 
   it('it should return alias value as host and porst as undefined if alias is not matched', () => {
@@ -41,7 +41,7 @@ describe('getAlias', () => {
       host: "notExistingAlias",
       port: undefined
     }
-    assert.deepStrictEqual(getAlias(endpoints, "notExistingAlias"), expectedEndpoint)
+    assert.deepStrictEqual(getByAlias(endpoints, "notExistingAlias"), expectedEndpoint)
   })
 
 })

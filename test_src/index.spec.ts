@@ -1,7 +1,7 @@
 import 'mocha'
 import * as assert from 'assert'
 import { readJson } from 'fs-promise'
-import System, { Component } from 'corpjs-system'
+import System from 'corpjs-system'
 import EndpointComponent, { EndpointsConfig, CorpjsEndpoints, Endpoints } from '../src'
 
 interface Config { systemEndpoints?: string | EndpointsConfig }
@@ -69,18 +69,15 @@ describe('corpjs-endpoints', () => {
 
 })
 
-function createSystem(conf): Promise<Components> {
-  return new Promise((resolve, reject) => {
-    new System<Components>()
-      .add('config', config(conf))
-      .add('endpoints', EndpointComponent()).dependsOn('config')
-      .start((err, system) => {
-        if (err) return reject(err)
-        resolve(system)
-      })
-  })
+async function createSystem(conf): Promise<any> {
+  return await new System()
+    .add('config', config(conf))
+    .add('endpoints', EndpointComponent()).dependsOn('config')
+    .start()
 }
 
-function config(conf): Component<Config> {
-  return { start(done) { done(null, conf) } }
+function config(conf): System.Component {
+  return {
+    async start() { return conf }
+  }
 }
