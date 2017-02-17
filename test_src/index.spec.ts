@@ -105,21 +105,21 @@ describe('corpjs-endpoints', () => {
   })
 
   it('it should watch file', done => {
-    (async () => {
-      await createEndpointsFile(testEndpoints)
-      system = createSystem({ systemEndpoints: ENDPOINTS_FILE_PATH })
-        .once('restart', ({endpoints}) => {
-          try {
-            assert.deepStrictEqual(endpoints.getServiceEndpoint('yee'), { host: '1.1.1.1', port: 3000 })
-            done()
-          } catch (err) {
-            done(err)
-          }
-        })
-      
-      await system.start()
-      await createEndpointsFile(changedEndpoints)
-    })()
+    createEndpointsFile(testEndpoints)
+      .then(() => {
+        system = createSystem({ systemEndpoints: ENDPOINTS_FILE_PATH })
+          .once('restart', ({endpoints}) => {
+            try {
+              assert.deepStrictEqual(endpoints.getServiceEndpoint('yee'), { host: '1.1.1.1', port: 3000 })
+              done()
+            } catch (err) {
+              done(err)
+            }
+          })
+      })
+      .then(() => system.start())
+      .then(() => createEndpointsFile(changedEndpoints))
+      .catch(done)
   })
 
   after(async () => {
