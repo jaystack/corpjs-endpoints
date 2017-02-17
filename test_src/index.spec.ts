@@ -2,7 +2,7 @@ import 'mocha'
 import * as assert from 'assert'
 import { writeJson, writeFile, truncate } from 'fs-promise'
 import System from 'corpjs-system'
-import EndpointComponent, { EndpointsConfig, CorpjsEndpoints, Endpoints } from '../src'
+import Endpoints from '../src'
 
 const testEndpoints = {
   "currentHost": "1.2.3.4",
@@ -131,7 +131,7 @@ describe('corpjs-endpoints', () => {
 function createSystem(conf): System {
   return new System()
     .add('config', config(conf))
-    .add('endpoints', EndpointComponent()).dependsOn('config')
+    .add('endpoints', Endpoints()).dependsOn('config')
 }
 
 async function createEndpointsFile(content?) {
