@@ -108,7 +108,7 @@ describe('corpjs-endpoints', () => {
     (async () => {
       await createEndpointsFile(testEndpoints)
       system = createSystem({ systemEndpoints: ENDPOINTS_FILE_PATH })
-        .on('restart', ({endpoints}) => {
+        .once('restart', ({endpoints}) => {
           try {
             assert.deepStrictEqual(endpoints.getServiceEndpoint('yee'), { host: '1.1.1.1', port: 3000 })
             done()
