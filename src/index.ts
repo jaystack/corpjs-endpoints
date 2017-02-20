@@ -46,7 +46,7 @@ export function Endpoints(): System.Component {
     },
 
     async stop() {
-      watcher.close()
+      if (watcher) watcher.close()
     }
 
   } as System.Component
