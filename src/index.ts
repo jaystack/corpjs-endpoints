@@ -35,10 +35,11 @@ export function Endpoints(): System.Component {
 
   return {
 
-    async start({config}: { config: any }, restart) {
+    async start({config}: { config: any }, restart, stop) {
       const endpointsFilePath = getEndpointsFilePath(config)
       const endpoints = await read(endpointsFilePath)
       watcher = watch(endpointsFilePath, restart)
+      watcher.on('error', stop)
       return {
         getServiceEndpoint: alias => getServiceEndpoint(endpoints, alias, config.normalize),
         getServiceAddress: alias => getServiceAddress(endpoints, alias, config.normalize)
