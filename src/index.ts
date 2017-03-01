@@ -69,11 +69,11 @@ function getEndpointsFilePath(config): string {
   return typeof endpointsFilePath === 'string' ? endpointsFilePath : endpointsFilePath.endpointsFilePath
 }
 
-function getServiceEndpoint(endpoints: Endpoints.Endpoints, alias: string, normalize = true): Endpoints.Endpoint {
+function getServiceEndpoint(endpoints: Endpoints.Endpoints, alias: string, normalize = false): Endpoints.Endpoint {
   return normalize ? normalizeEndpoint(endpoints.currentHost, getByAlias(endpoints, alias)) : getByAlias(endpoints, alias)
 }
 
-function getServiceAddress(endpoints, alias: string, normalize = true): string {
+function getServiceAddress(endpoints, alias: string, normalize = false): string {
   return join(getServiceEndpoint(endpoints, alias, normalize))
 }
 

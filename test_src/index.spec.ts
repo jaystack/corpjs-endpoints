@@ -86,9 +86,9 @@ describe('corpjs-endpoints', () => {
     assert.deepStrictEqual(endpoints.getServiceEndpoint('yee'), { host: 'localhost', port: 3000 })
   })
 
-  it('it should resolve endpoint of the same host as localhost', async () => {
+  it('it should resolve endpoint of the same host as localhost if normalize is on', async () => {
     await createEndpointsFile(testEndpoints)
-    system = createSystem({ endpointsFilePath: ENDPOINTS_FILE_PATH })
+    system = createSystem({ endpointsFilePath: ENDPOINTS_FILE_PATH, normalize: true })
     const {endpoints} = await system.start()
     assert.equal(testEndpoints.currentHost, '1.2.3.4')
     assert.equal(testEndpoints.hosts[1].endpoint.host, '1.2.3.4')
