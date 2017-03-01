@@ -64,9 +64,9 @@ async function read(path): Promise<Endpoints.Endpoints> {
 }
 
 function getEndpointsFilePath(config): string {
-  const { systemEndpoints } = config
-  if (!systemEndpoints) return './endpoints.json'
-  return typeof systemEndpoints === 'string' ? systemEndpoints : systemEndpoints.endpointsFilePath
+  const { endpointsFilePath } = config
+  if (!endpointsFilePath) return './endpoints.json'
+  return typeof endpointsFilePath === 'string' ? endpointsFilePath : endpointsFilePath.endpointsFilePath
 }
 
 function getServiceEndpoint(endpoints: Endpoints.Endpoints, alias: string, normalize = true): Endpoints.Endpoint {
