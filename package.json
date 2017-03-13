@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/jaystack/corpjs-endpoints#readme",
   "dependencies": {
-    "corpjs-system": "~0.0.27",
+    "corpjs-system": "latest",
     "fs-promise": "^2.0.0"
   },
   "devDependencies": {

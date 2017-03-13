@@ -1,4 +1,4 @@
-import { readJson, watch, FSWatcher } from 'fs-promise'
+import { readJson, watch, FSWatcher, ensureFile } from 'fs-promise'
 import System from 'corpjs-system'
 
 export namespace Endpoints {
@@ -35,8 +35,9 @@ export function Endpoints(): System.Component {
 
   return {
 
-    async start({config}: { config: any }, restart, stop) {
+    async start({ config }: { config: any }, restart, stop) {
       const endpointsFilePath = getEndpointsFilePath(config)
+      await ensureFile(endpointsFilePath)
       const endpoints = await read(endpointsFilePath)
       watcher = watch(endpointsFilePath, restart)
       watcher.on('error', stop)
@@ -47,7 +48,10 @@ export function Endpoints(): System.Component {
     },
 
     async stop() {
-      if (watcher) watcher.close()
+      if (watcher) {
+        watcher.close()
+        watcher = undefined
+      }
     }
 
   } as System.Component
@@ -89,7 +93,7 @@ function resolveAddress(address: string): Endpoints.Endpoint {
 }
 
 function join(endpoint: Endpoints.Endpoint): string {
-  const {host, port} = endpoint
+  const { host, port } = endpoint
   return [host, port].filter(_ => _).join(':')
 }
 

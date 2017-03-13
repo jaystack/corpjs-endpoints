@@ -1,6 +1,6 @@
 import 'mocha'
 import * as assert from 'assert'
-import { writeJson, writeFile, truncate } from 'fs-promise'
+import { writeJson, writeFile, remove, readFile } from 'fs-promise'
 import System from 'corpjs-system'
 import Endpoints from '../src'
 
@@ -46,50 +46,41 @@ describe('corpjs-endpoints', () => {
 
   let system
 
-  it('it misses endpoints file on default path', async () => {
-    try {
-      await createSystem({})
-    } catch (err) {
-      assert.throws(() => { throw err }, /ENOENT/)
-    }
-  })
-
   beforeEach(async () => {
     if (system) await system.stop()
+    await removeEndpointsFile()
   })
 
   it('for an empty json it should return the value of alias as host addres', async () => {
-    await createEndpointsFile()
-    system = createSystem({ endpointsFilePath: ENDPOINTS_FILE_PATH })
-    const {endpoints} = await system.start()
+    system = createSystem({ endpoints: { endpointsFilePath: ENDPOINTS_FILE_PATH } })
+    const { endpoints } = await system.start()
     assert.equal(endpoints.getServiceAddress('yee'), 'yee')
   })
 
   it('for an empty json it should return an endpoint with .host = the value of alias and .port = undefined', async () => {
-    await createEndpointsFile()
-    system = createSystem({ endpointsFilePath: ENDPOINTS_FILE_PATH })
-    const {endpoints} = await system.start()
+    system = createSystem({ endpoints: { endpointsFilePath: ENDPOINTS_FILE_PATH } })
+    const { endpoints } = await system.start()
     assert.deepStrictEqual(endpoints.getServiceEndpoint('yee'), { host: 'yee', port: undefined })
   })
 
   it('it should resolve endpoint address', async () => {
     await createEndpointsFile(testEndpoints)
-    system = createSystem({ endpointsFilePath: ENDPOINTS_FILE_PATH })
-    const {endpoints} = await system.start()
+    system = createSystem({ endpoints: { endpointsFilePath: ENDPOINTS_FILE_PATH } })
+    const { endpoints } = await system.start()
     assert.equal(endpoints.getServiceAddress('yee'), 'localhost:3000')
   })
 
   it('it should resolve endpoint', async () => {
     await createEndpointsFile(testEndpoints)
-    system = createSystem({ endpointsFilePath: ENDPOINTS_FILE_PATH })
-    const {endpoints} = await system.start()
+    system = createSystem({ endpoints: { endpointsFilePath: ENDPOINTS_FILE_PATH } })
+    const { endpoints } = await system.start()
     assert.deepStrictEqual(endpoints.getServiceEndpoint('yee'), { host: 'localhost', port: 3000 })
   })
 
   it('it should resolve endpoint of the same host as localhost if normalize is on', async () => {
     await createEndpointsFile(testEndpoints)
-    system = createSystem({ endpointsFilePath: ENDPOINTS_FILE_PATH, normalize: true })
-    const {endpoints} = await system.start()
+    system = createSystem({ endpoints: { endpointsFilePath: ENDPOINTS_FILE_PATH, normalize: true } })
+    const { endpoints } = await system.start()
     assert.equal(testEndpoints.currentHost, '1.2.3.4')
     assert.equal(testEndpoints.hosts[1].endpoint.host, '1.2.3.4')
     assert.deepStrictEqual(endpoints.getServiceEndpoint('sameHost'), { host: 'localhost', port: 3001 })
@@ -97,8 +88,8 @@ describe('corpjs-endpoints', () => {
 
   it('it should not resolve endpoint of a different host as localhost', async () => {
     await createEndpointsFile(testEndpoints)
-    system = createSystem({ endpointsFilePath: ENDPOINTS_FILE_PATH })
-    const {endpoints} = await system.start()
+    system = createSystem({ endpoints: { endpointsFilePath: ENDPOINTS_FILE_PATH } })
+    const { endpoints } = await system.start()
     assert.equal(testEndpoints.currentHost, '1.2.3.4')
     assert.equal(testEndpoints.hosts[2].endpoint.host, '10.20.30.40')
     assert.deepStrictEqual(endpoints.getServiceEndpoint('differentHost'), { host: '10.20.30.40', port: 3002 })
@@ -107,8 +98,8 @@ describe('corpjs-endpoints', () => {
   it('it should watch file', done => {
     createEndpointsFile(testEndpoints)
       .then(() => {
-        system = createSystem({ endpointsFilePath: ENDPOINTS_FILE_PATH })
-          .once('restart', ({endpoints}) => {
+        system = createSystem({ endpoints: { endpointsFilePath: ENDPOINTS_FILE_PATH } })
+          .once('restart', ({ endpoints }) => {
             try {
               assert.deepStrictEqual(endpoints.getServiceEndpoint('yee'), { host: '1.1.1.1', port: 3000 })
               done()
@@ -123,7 +114,8 @@ describe('corpjs-endpoints', () => {
   })
 
   after(async () => {
-    await system.stop()
+    if (system) await system.stop()
+    await removeEndpointsFile()
   })
 
 })
@@ -131,7 +123,7 @@ describe('corpjs-endpoints', () => {
 function createSystem(conf): System {
   return new System({ exitOnError: false })
     .add('config', config(conf))
-    .add('endpoints', Endpoints()).dependsOn('config')
+    .add('endpoints', Endpoints()).dependsOn({ component: 'config', source: 'endpoints', as: 'config' })
 }
 
 async function createEndpointsFile(content?) {
@@ -140,8 +132,18 @@ async function createEndpointsFile(content?) {
   return content
 }
 
+async function removeEndpointsFile() {
+  await remove(ENDPOINTS_FILE_PATH)
+}
+
 function config(conf): System.Component {
   return {
     async start() { return conf }
   }
+}
+
+async function sleep(time) {
+  return new Promise((resolve, reject) => {
+    setTimeout(resolve, time)
+  })
 }
