@@ -1,7 +1,7 @@
 {
   "name": "corpjs-endpoints",
   "version": "0.0.1",
-  "description": "Endpoint manager for microservices",
+  "description": "Endpoint manager component for microservices built on corpjs-system",
   "main": "lib/index.js",
   "typings": "lib/index",
   "scripts": {
@@ -19,10 +19,11 @@
   "keywords": [
     "microservice",
     "endpoints",
-    "corpjs"
+    "corpjs",
+    "component"
   ],
   "author": "JayStack",
-  "license": "ISC",
+  "license": "Beta access license, see LICENSE.TXT",
   "bugs": {
     "url": "https://github.com/jaystack/corpjs-endpoints/issues"
   },
